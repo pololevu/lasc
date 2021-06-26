@@ -145,17 +145,19 @@ uses a MAX7219 and 3x7 segment LED display. The second uses a 128x64
 dot matrix OLED display with SSD1306 driver. The latter provides a
 small, bright, sharp, low power dispay with great visibility and needs
 just 4 wires however the code to drive it is much bigger. The chosen
-MCU has only 8K of flash which is a challenge. Initially the code was
-compiled using the free SDCC-3.8.0 compiler and that should still be
-good for the 7 segment LED version but not for the OLED
-version. Fortunately the SDCC-4.* compiler generates more compact
-code and allows it to be shoehorned into < 8K.
+MCU has only 8K of flash which is a challenge.
+
+Compilation was done with the free and excellent SDCC -
+http://sdcc.sourceforge.net/index.php. Initially the code was
+compiled using version 3.8.0 compiler but the OLED version exceeded the code
+flash space on the mcu (8KB). Fortunately the SDCC-4.* compiler generates more
+compact code and allows it to be shoehorned into the mcu .
 
 Flashing the MCU is straightforward using a cheap STLINK2 clone bought
-on ebay and the free https://github.com/vdudouyt/stm8flash utility from GitHub.
+on ebay and the free https://github.com/vdudouyt/stm8flash utility.
 
 The project also utilises the sdcc-stm8 port of the official ST Micro
-Standard Peripheral Library - also found on GitHub - https://github.com/roshbaby/stm8s-sdcc
+Standard Peripheral Library - https://github.com/roshbaby/stm8s-sdcc
 
 Lasc code was developed on a Linux machine but most/all tools should run on Windows
 or Mac too. 
