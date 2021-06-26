@@ -1,0 +1,13 @@
+Pretty much feature complete on the original concept, so not exactly a
+ToDo more of a place to record possible enhancements.
+
+- Add a mode to support an additional switch to choose between
+  multiple MIDI channels, each channel could have own min/max range
+  and track last PC sent. Could use multi-colour LED or additional
+  7-SEG digit or additional data on OLED.
+  Would probably need more program FLASH.
+
+- Low power/Sleep if on battery power. Probably not worth the
+  time/effort, batteries not good for environment.
+
+- Send on multiple/all channels at once.
