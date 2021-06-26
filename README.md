@@ -15,8 +15,7 @@ make though basic soldering and coding skills will be necessary.
 Software tools required are free and the hardware required to flash
 the MCU is typically very cheap and readily available.
 
-![Image of lasc devices]
-(https://github.com/pololevu/lasc/img/lasc.jpg)
+![](img/lasc.jpg?raw=true)
 
 The bigger picture
 ==================
