@@ -20,9 +20,12 @@ devices (or switchers) produced by some well known and well respected
 manufacturers including Tech21nyc, Rocktron, T.C. Electronic and
 Disaster Control to name a few. I owned a Tech21 MIDI Mouse which is a
 simple, robust device that allows the user to send MIDI patch cahnge
-messages. Effective though it is, for me it had 2 major disadvantages,
-1) they are a bit big and clunky and 2) they are quite expensive. They
-also only support a fixed range of PC messages and rather annoyingly
+messages. Effective though it is, for me it had 2 major disadvantages:
+
+1. they are a bit big and clunky and
+2. they are quite expensive.
+
+They also only support a fixed range of PC messages and rather annoyingly
 enter config mode every power up.
 
 Cue: Lasc - An attempt to squish the MIDI-mouse features into a
@@ -136,18 +139,21 @@ uses a MAX7219 and 3x7 segment LED display. The second uses a 128x64
 dot matrix OLED display with SSD1306 driver. The latter provides a
 small, bright, sharp, low power dispay with great visibility and needs
 just 4 wires however the code to drive it is much bigger. The chosen
-MCU has only 8K of flash which is a challenge. Initially the code was
-compiled using the free SDCC-3.8.0 compiler and that should still be
-good for the 7 segment LED version but not for the OLED
-version. Fortunately the SDCC-4.* compiler generates more compact
-code and allows it to be shoehorned into < 8K. 
+MCU has only 8K of flash which is a challenge.
+
+Compilation was done with the free and excellent SDCC -
+http://sdcc.sourceforge.net/index.php. Initially the code was
+compiled using version 3.8.0 compiler but the OLED version exceeded the code
+flash space on the mcu (8KB). Fortunately the SDCC-4.* compiler generates more
+compact code and allows it to be shoehorned into the mcu .
 
 Flashing the MCU is straightforward using a cheap STLINK2 clone bought
-on ebay and the free stm8flash utility from GitHub.
+on ebay and the free https://github.com/vdudouyt/stm8flash utility.
 
 The project also utilises the sdcc-stm8 port of the official ST Micro
-Standard Peripheral Library - also found on GitHub. Lasc code was
-developed on a Linux machine but most/all tools should run on Windows
+Standard Peripheral Library - https://github.com/roshbaby/stm8s-sdcc
+
+Lasc code was developed on a Linux machine but most/all tools should run on Windows
 or Mac too. 
 
 MAX7219 -> 3 digit 7 segment LED
