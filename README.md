@@ -154,7 +154,7 @@ code and allows it to be shoehorned into < 8K.
 Flashing the MCU is straightforward using a cheap STLINK2 clone bought
 on ebay and the free stm8flash utility from GitHub.
 
-![vdudouyt/stm8flash](https://www.github.com/vdudouyt/stm8flash/)
+![](/vdudouyt/stm8flash)
 
 The project also utilises the sdcc-stm8 port of the official ST Micro
 Standard Peripheral Library - also found on GitHub
