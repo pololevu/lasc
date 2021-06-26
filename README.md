@@ -155,11 +155,14 @@ code and allows it to be shoehorned into < 8K.
 
 Flashing the MCU is straightforward using a cheap STLINK2 clone bought
 on ebay and the free stm8flash utility from GitHub.
+
 ![](https://github.com/vdudouyt/stm8flash)
 
 The project also utilises the sdcc-stm8 port of the official ST Micro
 Standard Peripheral Library - also found on GitHub
+
 ![](https://github.com/roshbaby/stm8s-sdcc)
+
 Lasc code was developed on a Linux machine but most/all tools should run on Windows
 or Mac too. 
 
