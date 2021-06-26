@@ -135,9 +135,10 @@ Build details
 =============
 The target MCU for this project is the ST Micro stm8s for which there
 are many very small and cheap dev boards. The device used for
-development was an STM8F103S3P6. The MCU board has a regulator
-on-board, good for a supply of up to 15VDC so driving this from a
-conventional 9vDC effect pedal supply should be fine.
+development was an ![STM8F103S3P6]
+(img/STM8S103F3P6-ARM-STM8-Minimum-System-Development-Board.jpg?raw=true).
+The MCU board has a regulator on-board, good for a supply of up to 15VDC
+so driving this from a conventional 9vDC effect pedal supply should be fine.
 
 The code currently supports two different displays/drivers. The first
 uses a MAX7219 and 3x7 segment LED display. The second uses a 128x64
