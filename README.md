@@ -151,14 +151,16 @@ MCU has only 8K of flash which is a challenge. Initially the code was
 compiled using the free SDCC-3.8.0 compiler and that should still be
 good for the 7 segment LED version but not for the OLED
 version. Fortunately the SDCC-4.* compiler generates more compact
-code and allows it to be shoehorned into < 8K. 
+code and allows it to be shoehorned into < 8K.
 
 Flashing the MCU is straightforward using a cheap STLINK2 clone bought
 on ebay and the free stm8flash utility from GitHub.
+![](https://github.com/vdudouyt/stm8flash)
 
 The project also utilises the sdcc-stm8 port of the official ST Micro
-Standard Peripheral Library - also found on GitHub. Lasc code was
-developed on a Linux machine but most/all tools should run on Windows
+Standard Peripheral Library - also found on GitHub
+![](https://github.com/roshbaby/stm8s-sdcc)
+Lasc code was developed on a Linux machine but most/all tools should run on Windows
 or Mac too. 
 
 MAX7219 -> 3 digit 7 segment LED
@@ -237,7 +239,11 @@ with cyanoacrylate (superglue) which worked pretty well.
 
 For the max7219/7 segment LED version, I used a small piece of
 vero/strip board and through hole components. There is a simple
-diagram included. I used 'sockets' for the 7 segment display pins but
+diagram included. 
+
+![](img/lasc-7-segment-display.png?raw=true)
+
+I used 'sockets' for the 7 segment display pins but
 in retrospect it would probably have been simpler to solder them
 direct, your mileage may vary though I'd suggest the OLED version
 looks better anyway.
