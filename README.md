@@ -15,6 +15,8 @@ make though basic soldering and coding skills will be necessary.
 Software tools required are free and the hardware required to flash
 the MCU is typically very cheap and readily available.
 
+(https://github.com/pololevu/lasc/blob/main/img/lasc.jpg)
+
 The bigger picture
 ==================
 With the obligatory pretentious bit out of the way, lasc is the Irish
