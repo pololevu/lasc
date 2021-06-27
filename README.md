@@ -138,6 +138,7 @@ are many very small and cheap dev boards. The device used for
 development was an STM8S103F3P6
 
 ![](img/STM8S103F3P6-ARM-STM8-Minimum-System-Development-Board.jpg?raw=true)
+
 https://www.st.com/en/microcontrollers-microprocessors/stm8s103f3.html#documentation
 
 The MCU board has a regulator on-board, good for a supply of up to 15VDC
