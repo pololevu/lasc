@@ -154,7 +154,8 @@ flash space on the mcu (8KB). Fortunately the SDCC-4.* compiler generates more
 compact code and allows it to be shoehorned into the mcu .
 
 Flashing the MCU is straightforward using a cheap STLINK2 clone bought
-on ebay and the free https://github.com/vdudouyt/stm8flash utility.
+on ebay ![](img/stlink2.jpg?raw=true) and the free
+https://github.com/vdudouyt/stm8flash utility.
 
 The project also utilises the sdcc-stm8 port of the official ST Micro
 Standard Peripheral Library - https://github.com/roshbaby/stm8s-sdcc
