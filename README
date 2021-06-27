@@ -6,7 +6,7 @@ Abstract
 --------
 Lasc aims to be a small and flexible MIDI patch selection tool similar
 in function to the popular Tech21 MIDI Mouse. The code is written in C
-and targetted to an ST-Microcontrollers stm8s MCU and either a 7
+and targeted to an STMicroelectronics stm8s MCU and either a 7
 segment LED or OLED display. It is intended to be cheap and simple to
 make though basic soldering and coding skills will be necessary.
 Software tools required are free and the hardware required to flash
@@ -14,12 +14,12 @@ the MCU is typically very cheap and readily available.
 
 The bigger picture
 ------------------
-With the obligatory pretentious bit out of the way, lasc is the Irish
+With the obligatory pretentious bit out of the way, Lasc is the Irish
 word for 'switch'. There are a number of compact MIDI patch change
 devices (or switchers) produced by some well known and well respected
 manufacturers including Tech21nyc, Rocktron, T.C. Electronic and
 Disaster Control to name a few. I owned a Tech21 MIDI Mouse which is a
-simple, robust device that allows the user to send MIDI patch cahnge
+simple, robust device that allows the user to send MIDI patch change
 messages. Effective though it is, for me it had 2 major disadvantages:
 
 1. they are a bit big and clunky and
@@ -31,7 +31,7 @@ enter config mode every power up.
 Cue: Lasc - An attempt to squish the MIDI-mouse features into a
 smaller box and add a few improvements.
 
-The original had 3 footswitches and two modes, one, immediate where
+The original had 3 foot switches and two modes, one, immediate where
 hitting the UP button just switched one patch up and DOWN, one
 down. Simples. The second mode flashed the display digits and would
 allow selecting a patch number using the UP/DOWN buttons with patch
@@ -39,7 +39,7 @@ numbers changing more quickly the longer the switch is held
 down. Hitting the 3rd MODE switch sends the selected patch and exits
 the mode. Bit trickier.
 
-Since one of the constraints on size is the space for 3 footswitches,
+Since one of the constraints on size is the space for 3 foot switches,
 the obvious mod is to allow for just the two, UP and DOWN, switches
 and emulate the MODE switch by pressing both UP and DOWN at the same
 time. Define 'HAS_MODE_FS' in the Makefile for the 3 button 
@@ -69,7 +69,7 @@ mode. This times out after a couple of seconds but is still a delay,
 particularly if the device gets reset while in use. Instead, Lasc will
 only enter config mode if a switch is held down during power up. The
 config itself is stored in  built in EEPROM. On first power up, the
-EEPROM is empty whih gives Lasc default MIDI channel 1 and range 0 -
+EEPROM is empty which gives Lasc default MIDI channel 1 and range 0 -
 127 which are reasonable defaults.
 
 Holding down a button during power-up will enter one of the config
@@ -90,8 +90,8 @@ Lasc stores its configuration in EEPROM. On power-up it reads these
 values then enters operational mode. The default configuration is MIDI
 channel 1, PC 0 - 127, display 1 - 128.
 
-To enter a configuration mode, keep a footswitch down during power-up
-until the LED display and, if fiited, the external LED
+To enter a configuration mode, keep a foot switch down during power-up
+until the LED display and, if fitted, the external LED
 flashes. Holding down the UP button will enter the MIDI config and
 holding down the DOWN button will enter the display config mode.
 
@@ -105,16 +105,16 @@ available patches. The defaults are:
  - upper case 'u':                              0 - 799
  - upper case 'U':                              0 - 998
 
-Pressing the UP or DOWN footswitch changes the MIDI channel,
+Pressing the UP or DOWN foot switch changes the MIDI channel,
 pressing the MODE switch (or pressing both UP and DOWN together on a
 two switch device) selects the range.
 
 In display config mode, the display flashes and shows a '0' or a '1'
-to signify the mode. '0' means that the number displayed by lasc is
-the actual MIDI PC number sent, eg 0 - 127 whereas '1' means that lasc
+to signify the mode. '0' means that the number displayed by Lasc is
+the actual MIDI PC number sent, eg 0 - 127 whereas '1' means that Lasc
 will display a number one greater than the MIDI PC value, eg when
-sending PC 00, lasc will display '1'. This is intended as a
-convenience to allow the lasc display to match the controoled device
+sending PC 00, Lasc will display '1'. This is intended as a
+convenience to allow the Lasc display to match the controlled device
 numbering.
 
 In either config mode, after around 3 seconds with no button press,
@@ -132,18 +132,18 @@ The target MCU for this project is the ST Micro stm8s for which there
 are many very small and cheap dev boards. The device used for
 development was an STM8F103S3P6. The MCU board has a regulator
 on-board, good for a supply of up to 15VDC so driving this from a
-conventional 9vDC effect pedal supply should be fine.
+conventional 9VDC effect pedal supply should be fine.
 
 The code currently supports two different displays/drivers. The first
 uses a MAX7219 and 3x7 segment LED display. The second uses a 128x64
 dot matrix OLED display with SSD1306 driver. The latter provides a
-small, bright, sharp, low power dispay with great visibility and needs
+small, bright, sharp, low power display with great visibility and needs
 just 4 wires however the code to drive it is much bigger. The chosen
 MCU has only 8K of flash which is a challenge.
 
 Compilation was done with the free and excellent SDCC -
 http://sdcc.sourceforge.net/index.php. Initially the code was
-compiled using version 3.8.0 compiler but the OLED version exceeded the code
+compiled using the version 3.8.0 compiler but the OLED version exceeded the code
 flash space on the mcu (8KB). Fortunately the SDCC-4.* compiler generates more
 compact code and allows it to be shoehorned into the mcu .
 
@@ -189,7 +189,7 @@ device but seems to work fine on 3v3.
 SSD1306 -> 128x64 OLED
 ----------------------
 While these displays are available with an SPI interface, the I2C
-version seems momre popular and cheaper. The display is connected to 2
+version seems more popular and cheaper. The display is connected to 2
 GPIO pins:
 
     SCL:     PB4
@@ -217,7 +217,8 @@ between its respective GPIO and ground.
 To minimise space used, the 2 switch version emulates the MODE switch
 when both buttons are pressed simultaneously. It is fairly easy to fit
 the 2 switch version in a 1590B using through hole components, a 0.56"
-display and stripboard. Ths SSD1306 version easily fits into a 1590A.
+display and strip board. The SSD1306 version easily fits into a 'Hammond' 
+1590A sized enclosure.
 
 Construction
 ------------
@@ -226,17 +227,17 @@ aluminium 'Hammond' enclosure. I used a Dremel-like tool with small
 cutting disks. There are probably way better methods. For the OLED
 version, since there are only a few connections it is pretty
 straightforward to just run wires from the dev board GPIO vias to the
-OLED, power, footswitches and MIDI port. I glued the OLED into the box
+OLED, power, foot switches and MIDI port. I glued the OLED into the box
 with cyanoacrylate (superglue) which worked pretty well.
 
 For the max7219/7 segment LED version, I used a small piece of
-vero/strip board and through hole components. There is a simple
+strip board and through hole components. There is a simple
 diagram included. I used 'sockets' for the 7 segment display pins but
 in retrospect it would probably have been simpler to solder them
 direct, your mileage may vary though I'd suggest the OLED version
 looks better anyway.
 
-I did this for fun and to learn a bit more about microcontrollers. I
+I did this for fun and to learn a bit more about micro-controllers. I
 don't make any guarantees it will work though mine works really
 well. Officially I don't offer support but if you do have a go at
 making one and get stuck, get in touch. Similarly if you have any good
