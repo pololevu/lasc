@@ -130,7 +130,7 @@ Build details
 -------------
 The target MCU for this project is the ST Micro stm8s for which there
 are many very small and cheap dev boards. The device used for
-development was an STM8F103S3P6. The MCU board has a regulator
+development was an STM8S103F3P6. The MCU board has a regulator
 on-board, good for a supply of up to 15VDC so driving this from a
 conventional 9VDC effect pedal supply should be fine.
 
