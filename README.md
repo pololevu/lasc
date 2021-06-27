@@ -166,8 +166,14 @@ and the free https://github.com/vdudouyt/stm8flash utility.
 The project also utilises the sdcc-stm8 port of the official ST Micro
 Standard Peripheral Library - https://github.com/roshbaby/stm8s-sdcc
 
-Lasc code was developed on a Linux machine but most/all tools should run on Windows
-or Mac too. 
+The build is controlled by a single Makefile, you will need to edit
+this to suit your paths and the options you want - that should be
+pretty straightforward. In addition to building the code there are
+additional targets to simplify flashing, testing and zeroing the
+EEPROM if ncessary.
+
+Lasc code was developed on a Linux machine but most/all tools should
+run on Windows or Mac. 
 
 MAX7219 -> 3 digit 7 segment LED
 =================================
