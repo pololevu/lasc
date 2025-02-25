@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 /* Footswitch that sends pre-defined MIDI messages when pressed
 
    Use an stm8s microcontroller to scan a number of footswitches
@@ -51,7 +51,7 @@
    4 does a better job of generating compact code than version 3 so prefer it. No doubt
    there are other updates too. Version 3 might be ok for the LED version at a push. */
 #if __SDCC_VERSION_MAJOR < 4
-#error "Use SDCC version 4 or later else generated code may be too big for device (>8K)!" 
+#error "Use SDCC version 4 or later else generated code may be too big for device (>8K)!"
 #endif
 
 #include "stm8s.h"
@@ -83,10 +83,10 @@ static uint8_t scanFS(uint8_t autoRepeat, uint16_t timeoutMs);
 /* Footswitch config. */
 #define MAXFS 3
 static footSwitch_TypeDef fsArr[MAXFS] =
-{
-    { PATCH_UP_FS_PIN,   FS_UP, 0, 0 },  /* PC3 */
-    { PATCH_DOWN_FS_PIN, FS_UP, 0, 0 },  /* PC4 */
-    { MODE_FS_PIN,       FS_UP, 0, 0 },  /* PC7 */
+    {
+        {PATCH_UP_FS_PIN, FS_UP, 0, 0},   /* PC3 */
+        {PATCH_DOWN_FS_PIN, FS_UP, 0, 0}, /* PC4 */
+        {MODE_FS_PIN, FS_UP, 0, 0},       /* PC7 */
 };
 
 /*---------------------------------------------------------------------------*/
@@ -103,7 +103,7 @@ static uint8_t sendMIDIBank = 1;
 /* maxPatch is the highest patch that may be selected. Pressing up when this is
    displayed will return to the first patch (PC 0). The values
    are arbitrary and more options can be added. */
-static uint16_t maxPatch[] = { MAXRANGE_0, MAXRANGE_1, MAXRANGE_2, MAXRANGE_3, MAXRANGE_4 };
+static uint16_t maxPatch[] = {MAXRANGE_0, MAXRANGE_1, MAXRANGE_2, MAXRANGE_3, MAXRANGE_4};
 static uint8_t range = 0;
 
 /* display the actual PC patch value sent instead of adding 1 (ie 0 - 127 instead of 1 - 128)
@@ -129,99 +129,99 @@ static __IO uint8_t displayIntensity = MAX_DISPLAY_INTENSITY;
 INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
 {
     disableInterrupts();
-    
+
     TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
 
     /* tick... rolls over */
     now++;
 
     if (msTicks != 0)
-        {
-            msTicks--;
-        }
+    {
+        msTicks--;
+    }
 
     if (doFlash)
-        /* Flash the display in config mode or mode 2.
-           If the external LED is used, it also flashes to
-           indicate the MIDI message transmission. The control
-           of those flashes is in this interrupt handler too
-           but is mutually exclusive with the display flash to
-           avoid inconsistent behaviour. */
+    /* Flash the display in config mode or mode 2.
+       If the external LED is used, it also flashes to
+       indicate the MIDI message transmission. The control
+       of those flashes is in this interrupt handler too
+       but is mutually exclusive with the display flash to
+       avoid inconsistent behaviour. */
+    {
+        switch (flashTicks)
         {
-            switch (flashTicks)
-                {
-                case 0:
-                    if (displayIntensity == MIN_DISPLAY_INTENSITY)
-                        {
-                            displayIntensity = MAX_DISPLAY_INTENSITY;
+        case 0:
+            if (displayIntensity == MIN_DISPLAY_INTENSITY)
+            {
+                displayIntensity = MAX_DISPLAY_INTENSITY;
 #ifdef USE_EXTERNAL_LED
-                            EXTERNAL_LED_OFF(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
+                EXTERNAL_LED_OFF(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
 #endif /* USE_EXTERNAL_LED */
-                        }
-                    else
-                        {
-                            displayIntensity = MIN_DISPLAY_INTENSITY;
+            }
+            else
+            {
+                displayIntensity = MIN_DISPLAY_INTENSITY;
 #ifdef USE_EXTERNAL_LED
-                            EXTERNAL_LED_ON(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
+                EXTERNAL_LED_ON(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
 #endif /* USE_EXTERNAL_LED */
-                        }
-                    flashTicks = FLASH_PERIOD_MS;
-                    break;
+            }
+            flashTicks = FLASH_PERIOD_MS;
+            break;
 
-                default:
-                    flashTicks--;
-                }
+        default:
+            flashTicks--;
         }
+    }
 #ifdef USE_EXTERNAL_LED
     else
+    {
+        /* flash the external LED on sending a MIDI message */
+        switch (ledTicks)
         {
-            /* flash the external LED on sending a MIDI message */
-            switch(ledTicks)
-                {
-                case 0:
-                    /* time's up, turn the LED off */
-                    EXTERNAL_LED_OFF(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
-                    break;
+        case 0:
+            /* time's up, turn the LED off */
+            EXTERNAL_LED_OFF(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
+            break;
 
-                default:
-                    ledTicks--;
-                }
+        default:
+            ledTicks--;
         }
+    }
 #endif /* USE_EXTERNAL_LED */
-    
+
     enableInterrupts();
 }
 
 static void flashDisplay(uint8_t action)
 {
-    switch(action)
-        {
-        case START_FLASH:
-            flashTicks = FLASH_PERIOD_MS;
-            doFlash = 1;
-            break;
-            
-        case STOP_FLASH:
-            doFlash = 0;
-            // displayIntensity = MAX_DISPLAY_INTENSITY;
+    switch (action)
+    {
+    case START_FLASH:
+        flashTicks = FLASH_PERIOD_MS;
+        doFlash = 1;
+        break;
+
+    case STOP_FLASH:
+        doFlash = 0;
+        // displayIntensity = MAX_DISPLAY_INTENSITY;
 #if defined MAX7219SPI
-            max7219_DisplayIntensity(MAX_DISPLAY_INTENSITY);
+        max7219_DisplayIntensity(MAX_DISPLAY_INTENSITY);
 #elif defined SSD1306I2C
-            ssd1306_DisplayIntensity(MAX_DISPLAY_INTENSITY);
+        ssd1306_DisplayIntensity(MAX_DISPLAY_INTENSITY);
 #endif /* defined MAX7219SPI */
-            
-        default:
-            ;
-        }
+
+    default:;
+    }
 }
-                        
+
 /* Blocking millisecond delay, msTicks is decremented by TIM2 interrupt */
 void delayMs(uint16_t ms)
 {
     /* Reload us value */
     msTicks = ms;
     /* Wait until msTick reach zero */
-    while (msTicks);
+    while (msTicks)
+        ;
 }
 
 /* Use High Speed Internal clock at 16MHz */
@@ -233,25 +233,27 @@ static void initClk(void)
     CLK_HSECmd(DISABLE);
     CLK_LSICmd(DISABLE);
     CLK_HSICmd(ENABLE);
-    while(CLK_GetFlagStatus(CLK_FLAG_HSIRDY) == FALSE) {};
+    while (CLK_GetFlagStatus(CLK_FLAG_HSIRDY) == FALSE)
+    {
+    };
 
     /* Set the core and peripherial clocks */
     CLK_ClockSwitchCmd(ENABLE);
     CLK_HSIPrescalerConfig(CLK_PRESCALER_HSIDIV1);
-    CLK_SYSCLKConfig(      CLK_PRESCALER_CPUDIV1);
+    CLK_SYSCLKConfig(CLK_PRESCALER_CPUDIV1);
 
     CLK_ClockSwitchConfig(CLK_SWITCHMODE_AUTO, CLK_SOURCE_HSI,
                           DISABLE, CLK_CURRENTCLOCKSTATE_ENABLE);
 
     /* Enable the preipherial clocks used */
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER2, ENABLE);
-    CLK_PeripheralClockConfig(CLK_PERIPHERAL_UART1,  ENABLE);
+    CLK_PeripheralClockConfig(CLK_PERIPHERAL_UART1, ENABLE);
 
     /* Disable all other clocks for now */
-    CLK_PeripheralClockConfig(CLK_PERIPHERAL_SPI,    DISABLE);
-    CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C,    DISABLE);
-    CLK_PeripheralClockConfig(CLK_PERIPHERAL_ADC,    DISABLE);
-    CLK_PeripheralClockConfig(CLK_PERIPHERAL_AWU,    DISABLE);
+    CLK_PeripheralClockConfig(CLK_PERIPHERAL_SPI, DISABLE);
+    CLK_PeripheralClockConfig(CLK_PERIPHERAL_I2C, DISABLE);
+    CLK_PeripheralClockConfig(CLK_PERIPHERAL_ADC, DISABLE);
+    CLK_PeripheralClockConfig(CLK_PERIPHERAL_AWU, DISABLE);
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER1, DISABLE);
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER4, DISABLE);
 }
@@ -281,15 +283,15 @@ static void initGpio(void)
     GPIO_Init(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN, GPIO_MODE_OUT_PP_LOW_FAST);
     EXTERNAL_LED_ON(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
 #endif /* USE_EXTERNAL_LED */
-    
+
     /* Set UART_TX_PIN as Output open-drain high-impedance level (UART1_Tx) */
     GPIO_Init(UART_TX_PORT, (GPIO_Pin_TypeDef)UART_TX_PIN, GPIO_MODE_OUT_OD_HIZ_FAST);
 
     /* Initialise all switch GPIOs as inputs with pull-ups enabled */
     for (i = 0; i < MAXFS; i++)
-        {
-            GPIO_Init(FS_PORT, fsArr[i].pin, GPIO_MODE_IN_PU_NO_IT);
-        }
+    {
+        GPIO_Init(FS_PORT, fsArr[i].pin, GPIO_MODE_IN_PU_NO_IT);
+    }
 }
 
 /* Setup the hardware UART as a MIDI out port */
@@ -304,10 +306,10 @@ static void initUart(void)
         - Receive disabled
         - UART1 Clock disabled
   */
-  UART1_Init((uint32_t)31250, UART1_WORDLENGTH_8D, UART1_STOPBITS_1, UART1_PARITY_NO,
-              UART1_SYNCMODE_CLOCK_DISABLE, UART1_MODE_TX_ENABLE);
+    UART1_Init((uint32_t)31250, UART1_WORDLENGTH_8D, UART1_STOPBITS_1, UART1_PARITY_NO,
+               UART1_SYNCMODE_CLOCK_DISABLE, UART1_MODE_TX_ENABLE);
 
-  UART1_Cmd(ENABLE);
+    UART1_Cmd(ENABLE);
 }
 
 /* Display the patch number */
@@ -315,45 +317,45 @@ static void displayPatch(uint16_t patchNo)
 {
     register int8_t i;
 
-    if (! showZeroBased)
+    if (!showZeroBased)
         patchNo++;
-    
+
 #if defined MAX7219SPI
     max7219_ClearDisplay();
-    
+
     for (i = 1; i <= MAX7219_NUMDIGITS; i++)
+    {
+        if (patchNo > 0)
         {
-            if (patchNo > 0)
-                {
-                    max7219_DisplayChar(i, patchNo % 10);
-                    patchNo /= 10;
-                }
-            else if (i == 1)  // special case for showZeroBased mode
-                {
-                    max7219_DisplayChar(i, 0);
-                }
-            else
-                {
-                    max7219_DisplayChar(i, MAX7219_SPACE_PAD);
-                }
+            max7219_DisplayChar(i, patchNo % 10);
+            patchNo /= 10;
         }
+        else if (i == 1) // special case for showZeroBased mode
+        {
+            max7219_DisplayChar(i, 0);
+        }
+        else
+        {
+            max7219_DisplayChar(i, MAX7219_SPACE_PAD);
+        }
+    }
 #elif defined SSD1306I2C
     for (i = 2; i >= 0; i--)
+    {
+        if (patchNo > 0)
         {
-            if (patchNo > 0)
-                {
-                    ssd1306_DisplayChar(i, patchNo % 10);
-                    patchNo /= 10;
-                }
-            else if (i == 2)  // special case for showZeroBased mode
-                {
-                    ssd1306_DisplayChar(i, 0);
-                }
-            else 
-                {
-                    ssd1306_DisplayChar(i, CHAR_BLANK_IDX);
-                }
+            ssd1306_DisplayChar(i, patchNo % 10);
+            patchNo /= 10;
         }
+        else if (i == 2) // special case for showZeroBased mode
+        {
+            ssd1306_DisplayChar(i, 0);
+        }
+        else
+        {
+            ssd1306_DisplayChar(i, CHAR_BLANK_IDX);
+        }
+    }
 #endif /* defined MAX7219SPI */
 }
 
@@ -365,23 +367,46 @@ static void sendMidiPC(uint16_t patch)
     EXTERNAL_LED_ON(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
     ledTicks = LED_FLASH_LEN_MS;
 #endif /* USE_EXTERNAL_LED */
-    
+
     /* Send MIDI message */
-    if (sendMIDIBank || range ) 
-        {
-            /* Send bank as a CC message */
-            while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
-            UART1_SendData8(MIDI_CC | midiChannel);
-            while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
-            UART1_SendData8(0x00);
-            while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
-            UART1_SendData8(patch / 128);
-        }
-    
+    if (sendMIDIBank || range)
+    {
+        /* Send bank as a CC message -
+           according to the spec CC 0 = MSB and CC 32 = LSB
+           however Strymon docs suggest just unsing the MSB
+           which also seems to work for a Boss ES-8 too.
+           In contrast, the old ART X-15 foot controller
+           uses both MSB and LSB which doesn't work for
+           the ES-8 at least...
+           So, just send the CC 0 message for the bank
+           and revisit if necessary later */
+        while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+            ;
+        UART1_SendData8(MIDI_CC | midiChannel);
+        while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+            ;
+        UART1_SendData8(0x00);
+        while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+            ;
+        /* UART1_SendData8(0x00);
+
+        while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+            ;
+        UART1_SendData8(MIDI_CC | midiChannel);
+        while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+            ;
+        UART1_SendData8(0x20);
+        while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+            ; */
+        UART1_SendData8(patch / 128);
+    }
+
     /* Send patch as PC message */
-    while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
+    while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+        ;
     UART1_SendData8(MIDI_PC | midiChannel);
-    while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
+    while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
+        ;
     UART1_SendData8(patch % 128);
 
 #ifdef RESTORELASTPC
@@ -390,7 +415,7 @@ static void sendMidiPC(uint16_t patch)
     writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + LASTPCLSB, patch & 0xFF);
     lockEeprom();
 #endif /* RESTORELASTPC */
-    
+
     displayPatch(patch);
 }
 
@@ -404,7 +429,8 @@ static void unlockEeprom(void)
     FLASH_Unlock(FLASH_MEMTYPE_DATA);
 
     /* Wait until Data EEPROM area unlocked flag is set */
-    while (FLASH_GetFlagStatus(FLASH_FLAG_DUL) == RESET);
+    while (FLASH_GetFlagStatus(FLASH_FLAG_DUL) == RESET)
+        ;
 }
 
 /* Lock EEPROM */
@@ -422,7 +448,8 @@ static uint8_t writeEepromByte(uint32_t addr, uint8_t val)
     FLASH_ProgramByte(addr, val);
 
     /* Wait until End of Programming flag is set */
-    while (FLASH_GetFlagStatus(FLASH_FLAG_EOP) == RESET);
+    while (FLASH_GetFlagStatus(FLASH_FLAG_EOP) == RESET)
+        ;
 
     /* Read back and verify */
     chk = FLASH_ReadByte(addr);
@@ -442,12 +469,12 @@ static uint8_t readEepromByte(uint32_t addr)
 static void manageConfig(void)
 {
     uint8_t buf;
-    
+
     /* Load current MIDI channel, range and display mode from EEPROM */
     midiChannel = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) & 0x0F);
     range = readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) % (MAXRANGE + 1);
     showZeroBased = readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) & 0x01;
-        
+
     /* If a FS is held down on power-up, enter config mode otherwise return.
        The initial contents of the EEPROM is expected to be all zeros which will
        result in the device transmitting on channel 1 with a PC range of 0-127
@@ -458,29 +485,29 @@ static void manageConfig(void)
 
     flashDisplay(START_FLASH);
     if (buf == DOWN)
-        {
-            configDisplay();
-        }
-    else 
-        {
-            configMIDI();
-        }
+    {
+        configDisplay();
+    }
+    else
+    {
+        configMIDI();
+    }
     flashDisplay(STOP_FLASH);
 
     /* EEPROM has finite life so only write if there was a change */
     if (midiChannel != (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) & 0x0F) ||
         range != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) ||
         showZeroBased != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET))
-        {
-            /* Store values to EEPROM for next time */
-            unlockEeprom();
-            writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET, midiChannel);
-            writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET, range);
-            writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET, showZeroBased);
-            lockEeprom();
-        }
+    {
+        /* Store values to EEPROM for next time */
+        unlockEeprom();
+        writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET, midiChannel);
+        writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET, range);
+        writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET, showZeroBased);
+        lockEeprom();
+    }
     return;
-}    
+}
 
 /* Select to display the actual PC value (eg 0 - 127) or more human friendly/common (eg 1 - 128) */
 static void configDisplay(void)
@@ -492,77 +519,77 @@ static void configDisplay(void)
     ssd1306_DisplayChar(2, showZeroBased ^ 1);
 #endif /* defined MAX7219SPI */
 
-    while(1)
+    while (1)
+    {
+        switch (scanFS(AUTOREPEAT_OFF, 3000))
         {
-            switch(scanFS(AUTOREPEAT_OFF, 3000))
-                {
-                case UP:
-                case DOWN:
-                    showZeroBased ^= 1;
+        case UP:
+        case DOWN:
+            showZeroBased ^= 1;
 #if defined MAX7219SPI
-                    max7219_DisplayChar(1, showZeroBased ^ 1);
+            max7219_DisplayChar(1, showZeroBased ^ 1);
 #elif defined SSD1306I2C
-                    ssd1306_DisplayChar(2, showZeroBased ^ 1);
+            ssd1306_DisplayChar(2, showZeroBased ^ 1);
 #endif /* defined MAX7219SPI */
-                    break;
+            break;
 
-                default:
-                    return;
-                }
+        default:
+            return;
         }
+    }
 }
 
 /* Select MIDI channel and the range of PC values */
-static void configMIDI(void) 
+static void configMIDI(void)
 {
 #if defined MAX7219SPI
     max7219_ShowMidiChannel(midiChannel, range);
 #elif defined SSD1306I2C
     ssd1306_ShowMidiChannel(midiChannel, range);
 #endif /* defined MAX7219SPI */
-    
-    while (1)
-        {
-            switch(scanFS(AUTOREPEAT_OFF, 3000))
-                {
-                case UP:
-                    /* Increment MIDI channel */
-                    midiChannel++;
-                    midiChannel %= 0x10;
-#if defined MAX7219SPI
-                    max7219_ShowMidiChannel(midiChannel, range);
-#elif defined SSD1306I2C
-                    ssd1306_ShowMidiChannel(midiChannel, range);
-#endif /* defined MAX7219SPI */
-                    break;
-                    
-                case DOWN:
-                    /* Decrement MIDI channel */
-                    midiChannel--;
-                    midiChannel %= 0x10;
-#if defined MAX7219SPI
-                    max7219_ShowMidiChannel(midiChannel, range);
-#elif defined SSD1306I2C
-                    ssd1306_ShowMidiChannel(midiChannel, range);
-#endif /* defined MAX7219SPI */
-                    break;
 
-                case MODE:
-                    /* Toggle extended range mode */
-                    range++;
-                    range %= (MAXRANGE + 1);
+    while (1)
+    {
+        switch (scanFS(AUTOREPEAT_OFF, 3000))
+        {
+        case UP:
+            /* Increment MIDI channel */
+            midiChannel++;
+            midiChannel %= 0x10;
 #if defined MAX7219SPI
-                    max7219_ShowMidiChannel(midiChannel, range);
+            max7219_ShowMidiChannel(midiChannel, range);
 #elif defined SSD1306I2C
-                    ssd1306_ShowMidiChannel(midiChannel, range);
+            ssd1306_ShowMidiChannel(midiChannel, range);
 #endif /* defined MAX7219SPI */
-                    break;
-                    
-                default:
-                    /* Done */
-                    return;
-                }
+            break;
+
+        case DOWN:
+            /* Decrement MIDI channel */
+            midiChannel--;
+            midiChannel %= 0x10;
+#if defined MAX7219SPI
+            max7219_ShowMidiChannel(midiChannel, range);
+#elif defined SSD1306I2C
+            ssd1306_ShowMidiChannel(midiChannel, range);
+#endif /* defined MAX7219SPI */
+            break;
+
+        case MODE:
+            /* Toggle extended range mode */
+            range++;
+            range %= (MAXRANGE + 1);
+#if defined MAX7219SPI
+            max7219_ShowMidiChannel(midiChannel, range);
+#elif defined SSD1306I2C
+            ssd1306_ShowMidiChannel(midiChannel, range);
+#endif /* defined MAX7219SPI */
+            break;
+
+        default:
+            /* Done */
+            return;
         }
+    }
 }
 
 /* Mode 2 - display flashes and increments/decrements on relevant footswitch press.
@@ -578,29 +605,29 @@ static void mode2(void)
     /* Start flashing the display */
     flashDisplay(START_FLASH);
 
-    while(i)
+    while (i)
+    {
+        switch (scanFS(AUTOREPEAT_ON, 0))
         {
-            switch(scanFS(AUTOREPEAT_ON, 0))
-                {
-                case UP:
-                    newPatchNo++;
-                    newPatchNo %= (maxPatch[range] + 1);
-                    displayPatch(newPatchNo);
-                    break;
+        case UP:
+            newPatchNo++;
+            newPatchNo %= (maxPatch[range] + 1);
+            displayPatch(newPatchNo);
+            break;
 
-                case DOWN:
-                    newPatchNo--;
-                    if (newPatchNo > maxPatch[range])
-                        {
-                            newPatchNo = maxPatch[range];
-                        }
-                    displayPatch(newPatchNo);
-                    break;
+        case DOWN:
+            newPatchNo--;
+            if (newPatchNo > maxPatch[range])
+            {
+                newPatchNo = maxPatch[range];
+            }
+            displayPatch(newPatchNo);
+            break;
 
-                case MODE:
-                    i = 0;
-                }
+        case MODE:
+            i = 0;
         }
+    }
 
     midiPatchNo = newPatchNo;
     sendMidiPC(midiPatchNo);
@@ -627,90 +654,89 @@ static uint8_t scanFS(uint8_t autoRepeat, uint16_t timeoutMs)
     uint32_t startScan;
 
     startScan = now;
-    
-    while(1)
+
+    while (1)
+    {
+        if (timeoutMs > 0 && (now - startScan) > timeoutMs)
+            return 0xFF;
+
+        if (doFlash)
         {
-            if (timeoutMs > 0 && (now - startScan) > timeoutMs)
-                return 0xFF;
-
-            if (doFlash) 
-                {
 #if defined MAX7219SPI
-                    max7219_DisplayIntensity(displayIntensity);
+            max7219_DisplayIntensity(displayIntensity);
 #elif defined SSD1306I2C
-                    ssd1306_DisplayIntensity(displayIntensity);
+            ssd1306_DisplayIntensity(displayIntensity);
 #endif /* defined MAX7219SPI */
-                }
-            
-            for (i = 0; i < MAXFS; i++)
-                {
-                    if ((GPIO_ReadInputData(FS_PORT) & fsArr[i].pin) == 0x00)
-                        {
-                            /* At least one switch is down */
-#ifndef HAS_MODE_FS
-                            if (i == MODE)
-                                {
-                                    /* In the 2 switch version, one of the switches will be
-                                       pressed before the other, and since each switch actuation
-                                       state and time are stored persistently this means that the
-                                       button which was pressed first will cause a MIDI patchchange
-                                       to be sent a little before the mode change. This is undesireable
-                                       so if both switches are pressed the the state of the individual
-                                       switches is reset. */
-                                    fsArr[UP].state = FS_UP;
-                                    fsArr[DOWN].state = FS_UP;
-                                }
-#endif /* !HAS_MODE_FS */                            
-                            switch (fsArr[i].state)
-                                {
-                                case FS_UP:
-                                    /* Freshly down */
-                                    fsArr[i].state = FS_DOWN;
-                                    fsArr[i].timeDown = now;
-                                    fsArr[i].firstDown = now;
-                                    break;
-
-                                case FS_DOWN:
-                                    /* Already down but not actioned */
-                                    if ((now - fsArr[i].timeDown) > DEBOUNCE_THRESHOLD_MS)
-                                        {
-                                            /* Down long enough, do it */
-                                            fsArr[i].state = FS_SENT;
-                                            fsArr[i].timeDown = now;
-                                            return i;
-                                        }
-                                    break;
-
-                                case FS_SENT:
-                                    if (autoRepeat == AUTOREPEAT_OFF)
-                                        continue;
-                                    
-                                    /* Switch was actioned but is still down. After time t
-                                       return it again - autorepeat feature. This starts more
-                                       slowly then increases the rate of change. */
-                                    if ((now - fsArr[i].firstDown) > AUTOREPEAT_FAST_AFTER)
-                                        {
-                                            autoRepeatPeriod = AUTOREPEAT_FAST_MS;
-                                        }
-
-                                    if ((now - fsArr[i].timeDown) > autoRepeatPeriod)
-                                        {
-                                            /* Down long enough, do it */
-                                            fsArr[i].timeDown = now;
-                                            return i;
-                                        }
-                                }
-                        }
-                    else
-                        {
-                            /* Switch is up */
-                            fsArr[i].state = FS_UP;
-                            autoRepeatPeriod = AUTOREPEAT_AFTER_MS;
-                        }
-                }
         }
-}
 
+        for (i = 0; i < MAXFS; i++)
+        {
+            if ((GPIO_ReadInputData(FS_PORT) & fsArr[i].pin) == 0x00)
+            {
+                /* At least one switch is down */
+#ifndef HAS_MODE_FS
+                if (i == MODE)
+                {
+                    /* In the 2 switch version, one of the switches will be
+                       pressed before the other, and since each switch actuation
+                       state and time are stored persistently this means that the
+                       button which was pressed first will cause a MIDI patchchange
+                       to be sent a little before the mode change. This is undesireable
+                       so if both switches are pressed the the state of the individual
+                       switches is reset. */
+                    fsArr[UP].state = FS_UP;
+                    fsArr[DOWN].state = FS_UP;
+                }
+#endif /* !HAS_MODE_FS */
+                switch (fsArr[i].state)
+                {
+                case FS_UP:
+                    /* Freshly down */
+                    fsArr[i].state = FS_DOWN;
+                    fsArr[i].timeDown = now;
+                    fsArr[i].firstDown = now;
+                    break;
+
+                case FS_DOWN:
+                    /* Already down but not actioned */
+                    if ((now - fsArr[i].timeDown) > DEBOUNCE_THRESHOLD_MS)
+                    {
+                        /* Down long enough, do it */
+                        fsArr[i].state = FS_SENT;
+                        fsArr[i].timeDown = now;
+                        return i;
+                    }
+                    break;
+
+                case FS_SENT:
+                    if (autoRepeat == AUTOREPEAT_OFF)
+                        continue;
+
+                    /* Switch was actioned but is still down. After time t
+                       return it again - autorepeat feature. This starts more
+                       slowly then increases the rate of change. */
+                    if ((now - fsArr[i].firstDown) > AUTOREPEAT_FAST_AFTER)
+                    {
+                        autoRepeatPeriod = AUTOREPEAT_FAST_MS;
+                    }
+
+                    if ((now - fsArr[i].timeDown) > autoRepeatPeriod)
+                    {
+                        /* Down long enough, do it */
+                        fsArr[i].timeDown = now;
+                        return i;
+                    }
+                }
+            }
+            else
+            {
+                /* Switch is up */
+                fsArr[i].state = FS_UP;
+                autoRepeatPeriod = AUTOREPEAT_AFTER_MS;
+            }
+        }
+    }
+}
 
 void main(void)
 {
@@ -747,33 +773,33 @@ void main(void)
     /* Turn the external LED off (it flashes for MIDI TX */
     EXTERNAL_LED_OFF(LED_GPIO_PORT, (GPIO_Pin_TypeDef)LED_GPIO_PIN);
 #endif /* USE_EXTERNAL_LED */
-    
+
     /* Scan switches and send messages */
-    while(1)
+    while (1)
+    {
+        switch (scanFS(AUTOREPEAT_OFF, 0))
         {
-            switch(scanFS(AUTOREPEAT_OFF, 0))
-                {
-                case UP:
-                    /* PC up */
-                    ++midiPatchNo;
-                    midiPatchNo %= (maxPatch[range] + 1);
-                    sendMidiPC(midiPatchNo);
-                    break;
+        case UP:
+            /* PC up */
+            ++midiPatchNo;
+            midiPatchNo %= (maxPatch[range] + 1);
+            sendMidiPC(midiPatchNo);
+            break;
 
-                case DOWN:
-                    /* PC down */
-                    --midiPatchNo;
-                    if (midiPatchNo > maxPatch[range])
-                        {
-                            midiPatchNo = maxPatch[range];
-                        }
-                    sendMidiPC(midiPatchNo);
-                    break;
+        case DOWN:
+            /* PC down */
+            --midiPatchNo;
+            if (midiPatchNo > maxPatch[range])
+            {
+                midiPatchNo = maxPatch[range];
+            }
+            sendMidiPC(midiPatchNo);
+            break;
 
-                case MODE:
-                    /* mode 2 */
-                    mode2();
-                    break;
-                }
+        case MODE:
+            /* mode 2 */
+            mode2();
+            break;
         }
+    }
 }
