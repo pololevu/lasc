@@ -84,6 +84,7 @@
 #define LASTPCMSB             2
 #define LASTPCLSB             3
 #define DISPLAYOFFSET         4
+#define BANKSOFFSET           5
 
 /* MAXRANGE - originally this was 127 (0 - 127 range) but many devices
    have more patches available in banks where the bank is set by a CC message

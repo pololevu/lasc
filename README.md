@@ -52,22 +52,20 @@ version.
 
 The MIDI mouse (and many other controllers) are restricted to
 selecting all 'standard' patch numbers 1 - 128 - MIDI PC 00 - 127 )
-however many MIDI devices support an extended range, in my case I have
-Strymon devices that have 200 memories. To access this range a MIDI CC
-bank number is sent before sending the PC message. The actual range of
-patches in a device may not be an exact multiple of 128 but that isn't
-a problem, there is provision in the code for setting a number of
-maximum patch numbers and selecting between them. By default there are
+however many MIDI devices support banks of patches accessed using MIDI 
+bank select CC messages. The bank select messages are comprised of
+the LSB and MSB of the desired bank which are sent immediately prior
+to the PC message. Some devices choose to ignore the LSB and instead 
+just use the MSB and Lasc allows choosing this behaviour.
+
+There is provision in the code for setting a number of maximum patch 
+numbers and selecting between them. By default there are
 5 ranges defined: 0 - 127, 0 - 199, 0 - 299, 0 - 799 and 0 - 998.
 
-Selecting a patch in the range 1 - 128 results in Lasc sending MIDI CC
-bank 0 followed by the relevant PC message. Selecting patch 129 - 200
-results in Lasc sending MIDI CC bank 1 followed by the MIDI PC message
-(in this case from 0 - 72). This was intended to work with Strymon
-devices but should work with other devices too. Sending a MIDI CC bank
-message to a device that doesn't support it should just be ignored. If
-it does cause a problem, defining DONTSENDBANK will do what it
-says. Obviously this will only apply to the patch range 0 - 127.
+Sending MIDI CC bank select messages to a device that doesn't support 
+them should just be ignored. If it does cause a problem, defining 
+DONTSENDBANK will do what it says. Obviously this will only apply to 
+the patch range 0 - 127.
 
 When initially powered up, the Tech21 MIDI mouse enters its config
 mode. This times out after a couple of seconds but is still a delay,
@@ -95,10 +93,11 @@ Lasc stores its configuration in EEPROM. On power-up it reads these
 values then enters operational mode. The default configuration is MIDI
 channel 1, PC 0 - 127, display 1 - 128.
 
-To enter a configuration mode, keep a foot switch down during power-up
-until the LED display and, if fitted, the external LED
-flashes. Holding down the UP button will enter the MIDI config and
-holding down the DOWN button will enter the display config mode.
+To enter a configuration mode, keep one or both foot switches down 
+during power-up until the display and, if fitted, the external LED
+flashes. Holding down the UP button will enter the MIDI config,
+holding down the DOWN button will enter the display config mode and
+holding down both will enter bank select config mode.
 
 In MIDI config mode, the current MIDI channel is displayed followed by
 an upper or lower case character, the latter to indicate the range of
@@ -121,6 +120,11 @@ will display a number one greater than the MIDI PC value, eg when
 sending PC 00, Lasc will display '1'. This is intended as a
 convenience to allow the Lasc display to match the controlled device
 numbering.
+
+In bank select config mode, the display falshes and shows a '0' or a '1'
+to signify the bank select mode. If '0', Lasc will set the bank select MSB 
+to 0 and the LSB to the bank number. If the mode is '1', Lasc will set the 
+bank select MSB and the LSB to the bank number.
 
 In either config mode, after around 3 seconds with no button press,
 the channel and range selected or display mode are saved to EEPROM so

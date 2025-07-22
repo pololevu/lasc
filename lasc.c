@@ -77,6 +77,7 @@ static uint8_t readEepromByte(uint32_t addr);
 static void manageConfig(void);
 static void configMIDI(void);
 static void configDisplay(void);
+static void configBanks(void);
 static void mode2(void);
 static uint8_t scanFS(uint8_t autoRepeat, uint16_t timeoutMs);
 
@@ -99,6 +100,7 @@ static uint8_t sendMIDIBank = 0;
 #else
 static uint8_t sendMIDIBank = 1;
 #endif /* DONTSENDBANK */
+static uint8_t es8Mode = 0;
 
 /* maxPatch is the highest patch that may be selected. Pressing up when this is
    displayed will return to the first patch (PC 0). The values
@@ -371,15 +373,14 @@ static void sendMidiPC(uint16_t patch)
     /* Send MIDI message */
     if (sendMIDIBank || range)
     {
-        /* Send bank as a CC message -
-           according to the spec CC 0 = MSB and CC 32 = LSB
-           however Strymon docs suggest just unsing the MSB
-           which also seems to work for a Boss ES-8 too.
-           In contrast, the old ART X-15 foot controller
-           uses both MSB and LSB which doesn't work for
-           the ES-8 at least...
-           So, just send the CC 0 message for the bank
-           and revisit if necessary later */
+        /* Send bank select CC messages (LSB & MSB)-
+           according to the spec CC 0 = MSB and CC 32 = LSB.
+           Some devices ignore the LSB and instead just
+           use the MSB (eg Strymon and Boss ES-8).
+
+           If es8Mode is set, the bank value is sent as both
+           MSB and LSB else the MSB is set to 0
+        */
         while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
             ;
         UART1_SendData8(MIDI_CC | midiChannel);
@@ -388,7 +389,10 @@ static void sendMidiPC(uint16_t patch)
         UART1_SendData8(0x00);
         while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
             ;
-        /* UART1_SendData8(0x00);
+        if (es8Mode)
+            UART1_SendData8(patch / 128);
+        else
+            UART1_SendData8(0x00);
 
         while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
             ;
@@ -397,7 +401,7 @@ static void sendMidiPC(uint16_t patch)
             ;
         UART1_SendData8(0x20);
         while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET)
-            ; */
+            ;
         UART1_SendData8(patch / 128);
     }
 
@@ -472,8 +476,9 @@ static void manageConfig(void)
 
     /* Load current MIDI channel, range and display mode from EEPROM */
     midiChannel = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) & 0x0F);
-    range = readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) % (MAXRANGE + 1);
-    showZeroBased = readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) & 0x01;
+    range = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) % (MAXRANGE + 1));
+    showZeroBased = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) & 0x01);
+    es8Mode = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + BANKSOFFSET) & 0x01);
 
     /* If a FS is held down on power-up, enter config mode otherwise return.
        The initial contents of the EEPROM is expected to be all zeros which will
@@ -484,26 +489,31 @@ static void manageConfig(void)
         return;
 
     flashDisplay(START_FLASH);
-    if (buf == DOWN)
+    switch (buf)
     {
+    case DOWN:
         configDisplay();
-    }
-    else
-    {
+        break;
+    case UP:
         configMIDI();
+        break;
+    case MODE:
+        configBanks();
     }
     flashDisplay(STOP_FLASH);
 
     /* EEPROM has finite life so only write if there was a change */
     if (midiChannel != (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) & 0x0F) ||
         range != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) ||
-        showZeroBased != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET))
+        showZeroBased != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) ||
+        es8Mode != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + BANKSOFFSET))
     {
         /* Store values to EEPROM for next time */
         unlockEeprom();
         writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET, midiChannel);
         writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET, range);
         writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET, showZeroBased);
+        writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + BANKSOFFSET, es8Mode);
         lockEeprom();
     }
     return;
@@ -587,6 +597,35 @@ static void configMIDI(void)
 
         default:
             /* Done */
+            return;
+        }
+    }
+}
+
+static void configBanks(void)
+{
+    /* Show current value, 1 means es8Mode */
+#if defined MAX7219SPI
+    max7219_DisplayChar(1, es8Mode ^ 1);
+#elif defined SSD1306I2C
+    ssd1306_DisplayChar(2, es8Mode ^ 1);
+#endif /* defined MAX7219SPI */
+
+    while (1)
+    {
+        switch (scanFS(AUTOREPEAT_OFF, 3000))
+        {
+        case UP:
+        case DOWN:
+            es8Mode ^= 1;
+#if defined MAX7219SPI
+            max7219_DisplayChar(1, es8Mode ^ 1);
+#elif defined SSD1306I2C
+            ssd1306_DisplayChar(2, es8Mode ^ 1);
+#endif /* defined MAX7219SPI */
+            break;
+
+        default:
             return;
         }
     }
