@@ -110,7 +110,7 @@ static uint8_t range = 0;
 
 /* display the actual PC patch value sent instead of adding 1 (ie 0 - 127 instead of 1 - 128)
    only affects what is displayed */
-static uint8_t showZeroBased = 0;
+static uint8_t showOneBased = 0;
 
 /* Time related globals */
 static __IO uint16_t msTicks = 0;
@@ -319,7 +319,7 @@ static void displayPatch(uint16_t patchNo)
 {
     register int8_t i;
 
-    if (!showZeroBased)
+    if (showOneBased)
         patchNo++;
 
 #if defined MAX7219SPI
@@ -332,7 +332,7 @@ static void displayPatch(uint16_t patchNo)
             max7219_DisplayChar(i, patchNo % 10);
             patchNo /= 10;
         }
-        else if (i == 1) // special case for showZeroBased mode
+        else if (i == 1) // special case for showOneBased mode
         {
             max7219_DisplayChar(i, 0);
         }
@@ -349,7 +349,7 @@ static void displayPatch(uint16_t patchNo)
             ssd1306_DisplayChar(i, patchNo % 10);
             patchNo /= 10;
         }
-        else if (i == 2) // special case for showZeroBased mode
+        else if (i == 2) // special case for showOneBased mode
         {
             ssd1306_DisplayChar(i, 0);
         }
@@ -477,7 +477,7 @@ static void manageConfig(void)
     /* Load current MIDI channel, range and display mode from EEPROM */
     midiChannel = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) & 0x0F);
     range = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) % (MAXRANGE + 1));
-    showZeroBased = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) & 0x01);
+    showOneBased = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) & 0x01);
     es8Mode = (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + BANKSOFFSET) & 0x01);
 
     /* If a FS is held down on power-up, enter config mode otherwise return.
@@ -503,30 +503,32 @@ static void manageConfig(void)
     flashDisplay(STOP_FLASH);
 
     /* EEPROM has finite life so only write if there was a change */
-    if (midiChannel != (readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) & 0x0F) ||
+    if (midiChannel != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET) ||
         range != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET) ||
-        showZeroBased != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) ||
+        showOneBased != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET) ||
         es8Mode != readEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + BANKSOFFSET))
     {
         /* Store values to EEPROM for next time */
         unlockEeprom();
         writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + CHANNELOFFSET, midiChannel);
         writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + RANGEOFFSET, range);
-        writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET, showZeroBased);
+        writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + DISPLAYOFFSET, showOneBased);
         writeEepromByte(FLASH_DATA_START_PHYSICAL_ADDRESS + BANKSOFFSET, es8Mode);
         lockEeprom();
     }
     return;
 }
 
-/* Select to display the actual PC value (eg 0 - 127) or more human friendly/common (eg 1 - 128) */
+/* Select '0' to display the actual PC value (eg 0 - 127)
+   or '1' for the more human friendly/common (eg 1 - 128)
+*/
 static void configDisplay(void)
 {
     /* Show current value, 0 means 0 - 127 etc */
 #if defined MAX7219SPI
-    max7219_DisplayChar(1, showZeroBased ^ 1);
+    max7219_DisplayChar(1, showOneBased);
 #elif defined SSD1306I2C
-    ssd1306_DisplayChar(2, showZeroBased ^ 1);
+    ssd1306_DisplayChar(2, showOneBased);
 #endif /* defined MAX7219SPI */
 
     while (1)
@@ -535,11 +537,11 @@ static void configDisplay(void)
         {
         case UP:
         case DOWN:
-            showZeroBased ^= 1;
+            showOneBased ^= 1;
 #if defined MAX7219SPI
-            max7219_DisplayChar(1, showZeroBased ^ 1);
+            max7219_DisplayChar(1, showOneBased);
 #elif defined SSD1306I2C
-            ssd1306_DisplayChar(2, showZeroBased ^ 1);
+            ssd1306_DisplayChar(2, showOneBased);
 #endif /* defined MAX7219SPI */
             break;
 
@@ -606,9 +608,9 @@ static void configBanks(void)
 {
     /* Show current value, 1 means es8Mode */
 #if defined MAX7219SPI
-    max7219_DisplayChar(1, es8Mode ^ 1);
+    max7219_DisplayChar(1, es8Mode);
 #elif defined SSD1306I2C
-    ssd1306_DisplayChar(2, es8Mode ^ 1);
+    ssd1306_DisplayChar(2, es8Mode);
 #endif /* defined MAX7219SPI */
 
     while (1)
@@ -619,9 +621,9 @@ static void configBanks(void)
         case DOWN:
             es8Mode ^= 1;
 #if defined MAX7219SPI
-            max7219_DisplayChar(1, es8Mode ^ 1);
+            max7219_DisplayChar(1, es8Mode);
 #elif defined SSD1306I2C
-            ssd1306_DisplayChar(2, es8Mode ^ 1);
+            ssd1306_DisplayChar(2, es8Mode);
 #endif /* defined MAX7219SPI */
             break;
 
