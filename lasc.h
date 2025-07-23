@@ -37,22 +37,20 @@
 #define STOP_FLASH            0x00
 #define FLASH_PERIOD_MS       150
 
+/* Optionally use an additional LED to indicate MIDI transmission */
 #ifdef USE_EXTERNAL_LED
 /* Period the LED should on/off for */
 #define LED_FLASH_LEN_MS      150
 
-/* Off-board LED */
-#define LED_GPIO_PORT         (GPIOA)
-#define LED_GPIO_PIN          (GPIO_PIN_1)
-
-/* or the onboard LED
-   NB this conflicts with the I2C GPIO */
-/* #define LED_GPIO_PORT         (GPIOB)
-   #define LED_GPIO_PIN          (GPIO_PIN_5) */
+/* LED GPIO - this is the onboard LED on the suggested MCU board
+   and/or an external LED wired to this GPIO
+   *NB* this conflicts with the I2C GPIO */
+#define LED_GPIO_PORT         (GPIOB)
+#define LED_GPIO_PIN          (GPIO_PIN_5)
 
 /* GPIO call to switch LED on or off */
-#define EXTERNAL_LED_ON    GPIO_WriteHigh
-#define EXTERNAL_LED_OFF   GPIO_WriteLow
+#define EXTERNAL_LED_ON    GPIO_WriteLow
+#define EXTERNAL_LED_OFF   GPIO_WriteHigh
 #endif /* USE_EXTERNAL_LED */
 
 /* Port and Pin used for UART transmit */
